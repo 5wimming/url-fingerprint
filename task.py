@@ -2,7 +2,7 @@
 # @Date    : 2021/04/09
 # @Author  : 5wimming
 
-import uuid
+import os
 import random
 import urllib3
 import requests
@@ -67,7 +67,7 @@ def url_info(url, cookie, body_path):
         print('flag01', e)
 
     try:
-        if text_len > 0:
+        if text_len > 5:
             filename = url.replace('https://', '').replace('http://', '') \
                            .replace('/', '').replace(':', '_').replace('.', '_') + '.txt'
             with open(body_path + filename, 'w', encoding='utf-8') as fw:
@@ -79,6 +79,9 @@ def url_info(url, cookie, body_path):
 
 
 def main(target, cookie, csv_columns, body_path='./output/'):
+    if not os.path.exists(body_path):
+        os.makedirs(body_path)
+
     url = target.strip()
 
     https_flag = False
@@ -141,4 +144,4 @@ if __name__ == '__main__':
     csv_columns = ['url', 'status', 'headers', 'body length', 'body url nums', 'redirect url', 'title'] \
                   + list(map(lambda key: wappalyzer[key]['name'], wappalyzer))
     cookie = get_cookie()
-    print(main('www.baidu.com:443', cookie, csv_columns))
+    print(main('www.baidu.com', cookie, csv_columns))
