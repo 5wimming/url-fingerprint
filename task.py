@@ -1,7 +1,9 @@
 # -*- coding:utf-8 -*-
-# @Date    : 2021/02/27
-# @Author  : weinull, 5wimming
+# @Date    : 2021/04/09
+# @Author  : 5wimming
 
+import uuid
+import random
 import urllib3
 import requests
 from bs4 import BeautifulSoup
@@ -16,34 +18,15 @@ warnings.filterwarnings("ignore", message="""Caught 'unbalanced parenthesis at p
 urllib3.disable_warnings()
 
 EXP_CHECK = False
-url_account = '5wimming'
-url_password = '5wimming'
+_account = ''
+_password = ''
 
 
-def get_url_cookie():
+def get_cookie():
     global cookie
-    login_url = 'https://login.5wimming.com/test/login.do'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': 'https://login.5wimming.com/test/'
-    }
-    post_data = {
-        'username': url_account,
-        'password': url_password
-    }
-    try:
-        result = requests.post(login_url, data=post_data, headers=headers, verify=False, timeout=100)
-        tmp_cookie = ''
-
-        for x in result.cookies:
-            tmp_cookie += '{}={}; '.format(x.name, x.value)
-        cookie = tmp_cookie
-        print(cookie)
-        return cookie
-    except Exception as e:
-        print(e)
+    cookie = 'tmp_cookie'
+    print(cookie)
+    return cookie
 
 
 def url_info(url, cookie, body_path):
@@ -53,7 +36,8 @@ def url_info(url, cookie, body_path):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'zh-CN,zh;q=0.9',
-        'Cookie': cookie
+        'Cookie': cookie,
+        'Connection': 'close'
     }
     r = requests.get(url, headers=request_headers, timeout=30, verify=False)
     text_len = len(r.text)
@@ -95,18 +79,26 @@ def url_info(url, cookie, body_path):
 
 
 def main(target, cookie, csv_columns, body_path='./output/'):
-    url = target.strip().replace('https://', '')
-    flag = False
-    if not url.startswith('http'):
-        flag = True
+    url = target.strip()
+
+    https_flag = False
+    if url.startswith('http://'):
+        pass
+    elif url.startswith('https://'):
+        https_flag = True
+    else:
         url = 'http://{}'.format(url)
-    result = [url]
+
+    result = []
     try:
         result = url_info(url, cookie, body_path)
     except Exception as e:
         try:
-            if flag:
+            if https_flag:
+                url = url.replace('https://', 'http://')
+            else:
                 url = url.replace('http://', 'https://')
+
                 result = url_info(url, cookie, body_path)
         except Exception as e:
             print('error:', e)
@@ -148,5 +140,5 @@ if __name__ == '__main__':
     wappalyzer = Wappalyzer.latest().categories
     csv_columns = ['url', 'status', 'headers', 'body length', 'body url nums', 'redirect url', 'title'] \
                   + list(map(lambda key: wappalyzer[key]['name'], wappalyzer))
-    cookie = get_url_cookie()
-    print(main('www.5wimming.com', cookie, csv_columns))
+    cookie = get_cookie()
+    print(main('www.baidu.com:443', cookie, csv_columns))
